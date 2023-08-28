@@ -1,6 +1,6 @@
 const User = require('../model/User');
 const bcrypt = require('bcryptjs');
-const { generateToken, verifyToken } = require('../middleware/isAuth')
+const { generateToken, verifyToken } = require('../middleware/authToken')
 
 exports.signup = async (req, res, next) => {
     const name = req.body.name;

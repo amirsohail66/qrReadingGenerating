@@ -4,7 +4,7 @@ const path = require('path');
 const Jimp = require("jimp");
 const qrCodeReader = require('qrcode-reader');
 const QRCodeModel = require('../model/QRCode'); // Import your MongoDB model
-const { verifyToken } = require('../middleware/isAuth')
+const { verifyToken } = require('../middleware/authToken')
 const sendEmail = require('../services/emailServices');
 
 exports.generate = async (req, res) => {
