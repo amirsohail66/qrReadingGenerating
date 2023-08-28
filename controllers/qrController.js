@@ -10,23 +10,7 @@ const sendEmail = require('../services/emailServices');
 exports.generate = async (req, res) => {
     const qrText = req.body.qrText;
     try {
-        // Check if user is authenticated
-        if (!req.headers.authorization) {
-            return res.status(401).json({ error: 'Authentication required' });
-        }
-        
-        const token = req.headers.authorization.split(' ')[1];
-
-        // Verify the token
-        const decodedToken = verifyToken(token);
-
-        if (!decodedToken) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-
-        // Token is valid, continue with QR code generation
-        const userEmail = decodedToken.email;
-
+        const userEmail = req.email;
         const qrCodeDataURL = await qrcode.toDataURL(qrText);  //it wil store image in this formate => data:image/png;base64,iVBORw0KGgoAAAANSUhEUg(Data URL
 
         // For generating a unique filename
@@ -57,21 +41,6 @@ exports.generate = async (req, res) => {
 
 exports.read = async (req, res) => {
     try {
-        // Check if user is authenticated
-        if (!req.headers.authorization) {
-            return res.status(401).json({ error: 'Authentication required' });
-        }
-
-        const token = req.headers.authorization.split(' ')[1];
-
-        // Verify the token
-        const decodedToken = verifyToken(token);
-
-        if (!decodedToken) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-
-        // Token is valid, continue with QR code Reading
         // Read the uploaded image and create a buffer
         const buffer = req.file.buffer;
 
@@ -97,3 +66,4 @@ exports.read = async (req, res) => {
 };
 
 //content type -> multipart/form-data, application/json
+

@@ -3,21 +3,24 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const userRoutes = require('./routes/user-routes');
 const adminRoutes = require('./routes/admin-routes');
-const qrcodeRoute = require('./routes/qrcode'); // Import the qrcode route
+const qrcodeRoute = require('./routes/qr-routes'); // Import the qrcode route
 require('dotenv').config();
 
 const app = express();
-
 app.use(bodyParser.json());
 
-app.use("/admin", adminRoutes)
-app.use("/user",userRoutes)
+app.use("/admin", adminRoutes);
+app.use("/user", userRoutes);
 app.use('/user/qrcode', qrcodeRoute);
 
-mongoose
-.connect(process.env.MONGO_URL)
-.then(() => app.listen(3000))
-.then(() => console.log("Connected to the Database and listening on the port 3000"))
-.catch((err) => {
-  console.log(err);
-})
+async function startServer() {
+  try {
+    await mongoose.connect(process.env.MONGO_URL);
+    app.listen(3000);
+    console.log("Connected to the Database and listening on the port 3000");
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+startServer();
