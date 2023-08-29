@@ -1,6 +1,5 @@
 const Admin = require('../model/Admin');
 const User = require('../model/User')
-const bcrypt = require('bcryptjs');
 const { generateToken, verifyToken } = require('../middleware/authToken')
 
 exports.getAllUser = async (req, res, next) => {
