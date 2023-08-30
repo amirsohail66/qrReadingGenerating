@@ -1,5 +1,6 @@
 const Admin = require('../model/Admin');
 const User = require('../model/User')
+const { generateToken, verifyToken } = require('../middleware/authToken')
 const bcrypt = require('bcryptjs');
 const { generateToken } = require('../middleware/authToken')
 const { sendEmail } = require('../services/emailServices');
