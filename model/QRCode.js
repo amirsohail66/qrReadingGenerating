@@ -1,4 +1,3 @@
-// models/QRCode.js
 const mongoose = require('mongoose');
 
 const qrCodeSchema = new mongoose.Schema({

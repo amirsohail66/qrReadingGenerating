@@ -1,26 +1,11 @@
 const Admin = require('../model/Admin');
 const User = require('../model/User')
 const bcrypt = require('bcryptjs');
-const { generateToken, verifyToken } = require('../middleware/authToken')
+const { generateToken } = require('../middleware/authToken')
+const { sendEmail } = require('../services/emailServices');
 
 exports.getAllUser = async (req, res, next) => {
     try {
-
-        // Check if user is authenticated
-        if (!req.headers.authorization) {
-            return res.status(401).json({ error: 'Authentication required' });
-        }
-
-        const token = req.headers.authorization.split(' ')[1];
-
-        // Verify the token
-        const decodedToken = verifyToken(token);
-
-        if (!decodedToken) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-
-        // Token is valid, continue with QR code generation
         const users = await User.find();
         if (!users || users.length === 0) {
             return res.status(404).json({ message: "No users found" });
@@ -32,7 +17,7 @@ exports.getAllUser = async (req, res, next) => {
     }
 };
 
-exports.signup = async (req, res, next) => {
+exports.signup = async (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
     const role = req.body.role;
@@ -84,9 +69,28 @@ exports.delete = async (req, res, next) => {
             return res.status(401).json({ message: 'A user with this email could not be found.' });
         }
         await user.deleteOne();
-        res.send("deleted")
+        res.send("User deleted successfully")
     } catch (err) {
         console.log(err);
         res.status(500).json({ message: "An error occurred" });
     }
 }
+
+exports.sendEmailToUser = async (req, res) => {
+    const userEmail = req.body.email;
+
+    try {
+        const user = await User.findOne({ email: userEmail }).populate('qrCodes');
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        await sendEmail(userEmail, user.qrCodes);
+
+        res.json({ message: 'Email sent successfully' });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error: 'An error occurred while sending the email' });
+    }
+};

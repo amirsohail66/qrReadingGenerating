@@ -38,8 +38,10 @@ exports.login = async (req, res, next) => {
         if (!isEqual) {
             return res.status(401).json({ message: 'Wrong password!' });
         }
-
-        const token = generateToken(email);
+        
+        const userId = user._id;
+        
+        const token = await generateToken(email, userId);
 
         res.status(200).json({ message: 'Login successful!', userId: user._id, token });
     } catch (err) {

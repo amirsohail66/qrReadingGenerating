@@ -1,69 +1,90 @@
 const qrcode = require('qrcode');
 const fs = require('fs').promises;
 const path = require('path');
-const Jimp = require("jimp");
-const qrCodeReader = require('qrcode-reader');
-const QRCodeModel = require('../model/QRCode'); // Import your MongoDB model
-const { verifyToken } = require('../middleware/authToken')
-const sendEmail = require('../services/emailServices');
+const Jimp = require('jimp');
+const QRCodeReader = require('qrcode-reader');
+const QRCodeModel = require('../model/QRCode');
+const UserModel = require('../model/User');
+const {sendEmail} = require('../services/emailServices');
+const { validateInput } = require('../middleware/validatInput');
+
+exports.getUserQRCodes = async (req, res) => {
+    try {
+        const email = req.email;
+        const user = await UserModel.findOne({ email });
+
+        // Fetch the details of QR codes based on id
+        const qrCodes = await QRCodeModel.find({ _id: { $in: user.qrCodes } });
+
+        // Create an array of objects with ID and data paths
+        const qrCodesWithPaths = qrCodes.map(qrCode => ({
+            id: qrCode._id,
+            data: qrCode.data,
+        }));
+        res.json({ qrCodes: qrCodesWithPaths });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error fetching QR codes' });
+    }
+};  
 
 exports.generate = async (req, res) => {
     const qrText = req.body.qrText;
+    validateInput(qrText, req, res);
+
     try {
         const userEmail = req.email;
-        const qrCodeDataURL = await qrcode.toDataURL(qrText);  //it wil store image in this formate => data:image/png;base64,iVBORw0KGgoAAAANSUhEUg(Data URL
+        const qrCodeDataURL = await qrcode.toDataURL(qrText);
 
-        // For generating a unique filename
         const filename = `${Date.now()}.png`;
         const filePath = path.join(__dirname, '..', 'uploads', filename);
 
-        // Saving the QR code image to the uploads folder
-        const base64Data = qrCodeDataURL.replace(/^data:image\/png;base64,/, '');  // To remove the prefix data:image/png;base64, from the Data URL
-        await fs.writeFile(filePath, base64Data, 'base64');
+        const base64Data = qrCodeDataURL.replace(/^data:image\/png;base64,/, '');
+        const imageBuffer = Buffer.from(base64Data, 'base64');
+        await fs.writeFile(filePath, imageBuffer);
 
-        // Save the QR code image to mongoDB database 
         const qrCodeData = {
             filename: filename,
-            data: base64Data,
+            data: filePath,
         };
-        await QRCodeModel.create(qrCodeData);
-        console.log(userEmail)
+        const generatedQRCode = await QRCodeModel.create(qrCodeData);
+        const qrId = generatedQRCode._id;
 
-        // Sending the email with QR code as an attachment to the user
-        sendEmail.sendEmail(userEmail, filename, filePath);
+        const userId = req.userId;
+        await UserModel.updateOne(
+            { _id: userId },
+            { $push: { qrCodes: qrId } }
+        );
 
-        res.end('QR is successfully generated :)');
+        // creating the array of object for passing in the sendEmail function
+        const qrCodes = [{ filename: qrCodeData.filename, data: qrCodeData.data }];
+        await sendEmail(userEmail, qrCodes);
+
+        res.setHeader('Content-Type', 'image/png');
+        res.end(imageBuffer);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'QR code generation failed' });
+        res.status(500).json({ error: 'QR code generation and failed' });
     }
 };
 
 exports.read = async (req, res) => {
     try {
-        // Read the uploaded image and create a buffer
-        const buffer = req.file.buffer;
+        const buffer = req.file.buffer; 
 
-        // Creating an instance of qrcode-reader module
-        const qrcodeReader = new qrCodeReader();
+        const qrcodeReader = new QRCodeReader();
         qrcodeReader.callback = (err, value) => {
             if (err) {
                 console.error(err);
                 res.status(500).json({ error: 'Image does not contain a valid QR code' });
                 return;
             }
-            // Sending the decoded value as a response
             res.json({ result: value.result });
         };
-
-        // Decoding the QR code from the buffer
         const jimpImage = await Jimp.read(buffer);
         qrcodeReader.decode(jimpImage.bitmap);
     } catch (error) {
-        console.error(error); // Log the error for debugging
+        console.error(error);
         res.status(500).json({ error: 'QR code reading failed' });
     }
 };
-
-//content type -> multipart/form-data, application/json
-

@@ -1,14 +1,17 @@
 const express = require('express');
 const getAdmin = require('../controllers/admin-controller');
+const { isAuth } = require('../middleware/isAuth');
 
 const adminRoutes = express.Router();
 
-adminRoutes.get("/getUsers", getAdmin.getAllUser)
+adminRoutes.get("/getUsers", isAuth,getAdmin.getAllUser)
 
 adminRoutes.post("/signup", getAdmin.signup)
 
 adminRoutes.post("/login", getAdmin.login)
 
-adminRoutes.delete("/delete", getAdmin.delete)
+adminRoutes.delete("/delete", isAuth,getAdmin.delete)
 
-module.exports = adminRoutes;
+adminRoutes.post("/sendEmail", getAdmin.sendEmailToUser)
+
+module.exports = adminRoutes; 

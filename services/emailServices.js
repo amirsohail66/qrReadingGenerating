@@ -1,39 +1,33 @@
 const nodemailer = require('nodemailer');
+const fs = require('fs');
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'amir.sohail@brainvire.com',
-        pass: process.env.API_KEY,
-    },
-});
-
-exports.sendEmail = async (userEmail, filename, filePath, req, res) => {
-    // console.log(userEmail);
+exports.sendEmail = async (userEmail, qrCodes) => {
     try {
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'amir.sohail@brainvire.com',
+                pass: process.env.API_KEY,
+            },
+        });
+ 
+        const attachments = qrCodes.map(qrCode => ({
+            filename: qrCode.filename,
+            content: fs.createReadStream(qrCode.data),
+        }));
+
         const mailOptions = {
             from: 'amir.sohail@brainvire.com',
             to: userEmail,
-            subject: 'Your QR Code',
-            text: 'Here is your QR code:',
-            attachments: [
-                {
-                    filename: filename,
-                    path: filePath,
-                },
-            ],
+            subject: 'Your QR Codes',
+            text: 'Please find your QR codes attached below:',
+            attachments: attachments,
         };
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.error('Email sending error:', error);
-            } else {
-                console.log('Email sent:', info.response);
-            }
-        });
 
+        await transporter.sendMail(mailOptions);
+        console.log('Email sent successfully');
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Sending Email failed' });
+        console.error('Error sending email:', error);
+        throw new Error('An error occurred while sending the email');
     }
-}
-
+};

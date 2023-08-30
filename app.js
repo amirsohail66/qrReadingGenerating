@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const userRoutes = require('./routes/user-routes');
 const adminRoutes = require('./routes/admin-routes');
-const qrcodeRoute = require('./routes/qr-routes'); // Import the qrcode route
+const qrcodeRoute = require('./routes/qr-routes');
 require('dotenv').config();
 
 const app = express();
@@ -12,6 +12,13 @@ app.use(bodyParser.json());
 app.use("/admin", adminRoutes);
 app.use("/user", userRoutes);
 app.use('/user/qrcode', qrcodeRoute);
+
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  next();
+});
 
 async function startServer() {
   try {
@@ -22,5 +29,4 @@ async function startServer() {
     console.error(err);
   }
 }
-
 startServer();
