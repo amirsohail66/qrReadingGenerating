@@ -12,7 +12,7 @@ exports.isAuth = async (req, res, next) => {
     const decodedToken = verifyToken(token);    
 
     if (!decodedToken.email) {
-        return res.status(401).json({ error: 'Invalid token' });
+        return res.status(401).json({ error: 'Session Expired' });
     }
     req.email = decodedToken.email; 
     req.userId = decodedToken.userId; // Assuming your decoded token contains the userId

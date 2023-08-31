@@ -7,8 +7,7 @@ const userRoutes = express.Router();
 
 userRoutes.post("/signup", getUser.signup);
 userRoutes.post("/login", getUser.login);
-
-// New route to show user's generated QR codes
 userRoutes.get("/myqrcodes", isAuth, qrController.getUserQRCodes);
+userRoutes.post("/logout", getUser.logout)
 
 module.exports = userRoutes;

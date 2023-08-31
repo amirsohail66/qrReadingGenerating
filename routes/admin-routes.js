@@ -7,11 +7,13 @@ const adminRoutes = express.Router();
 adminRoutes.get("/getUsers", isAuth,getAdmin.getAllUser)
 
 adminRoutes.post("/signup", getAdmin.signup)
-
+    
 adminRoutes.post("/login", getAdmin.login)
 
 adminRoutes.delete("/delete", isAuth,getAdmin.delete)
 
 adminRoutes.post("/sendEmail", getAdmin.sendEmailToUser)
+
+adminRoutes.post("/logout", getAdmin.logout)
 
 module.exports = adminRoutes; 

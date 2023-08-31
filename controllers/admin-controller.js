@@ -1,8 +1,7 @@
 const Admin = require('../model/Admin');
 const User = require('../model/User')
-const { generateToken, verifyToken } = require('../middleware/authToken')
+const { generateToken, logoutToken } = require('../middleware/authToken')
 const bcrypt = require('bcryptjs');
-const { generateToken } = require('../middleware/authToken')
 const { sendEmail } = require('../services/emailServices');
 
 exports.getAllUser = async (req, res, next) => {
@@ -61,6 +60,11 @@ exports.login = async (req, res, next) => {
     }
 };
 
+exports.logout = async (req, res) => {
+    const token = await logoutToken();
+    res.json({ message: "You have successfully logged out" });
+};
+
 exports.delete = async (req, res, next) => {
     const email = req.body.email;
 
@@ -95,3 +99,4 @@ exports.sendEmailToUser = async (req, res) => {
         res.status(500).json({ error: 'An error occurred while sending the email' });
     }
 };
+

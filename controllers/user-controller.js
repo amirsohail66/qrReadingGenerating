@@ -1,6 +1,6 @@
 const User = require('../model/User');
 const bcrypt = require('bcryptjs');
-const { generateToken, verifyToken } = require('../middleware/authToken')
+const { generateToken, logoutToken } = require('../middleware/authToken')
 
 exports.signup = async (req, res, next) => {
     const name = req.body.name;
@@ -38,9 +38,9 @@ exports.login = async (req, res, next) => {
         if (!isEqual) {
             return res.status(401).json({ message: 'Wrong password!' });
         }
-        
+
         const userId = user._id;
-        
+
         const token = await generateToken(email, userId);
 
         res.status(200).json({ message: 'Login successful!', userId: user._id, token });
@@ -48,5 +48,11 @@ exports.login = async (req, res, next) => {
         console.log(err);
         res.status(500).json({ message: "An error occurred" });
     }
+};
+
+
+exports.logout = async (req, res) => {
+    const token = await logoutToken();
+    res.json({ message: "You have successfully logged out" });
 };
 

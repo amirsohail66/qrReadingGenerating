@@ -16,3 +16,7 @@ exports.verifyToken = (token) => {
   }
 };
 
+exports.logoutToken = () => {
+  return jwt.sign({  }, SECRET_KEY, { expiresIn: "1s"})
+}
+

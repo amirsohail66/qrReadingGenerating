@@ -14,4 +14,4 @@ qrRoutes.post('/generate', isAuth, upload.single('qrText'), qrController.generat
 qrRoutes.post('/read', isAuth,upload.single('qrImage'), qrController.read );
 
 
-module.exports = qrRoutes; 
+module.exports = qrRoutes;

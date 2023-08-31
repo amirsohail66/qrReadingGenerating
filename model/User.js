@@ -20,6 +20,9 @@ const userSchema = new Schema({
         required: true,
         minlength: 5
     },
+    tokens: [{
+        type: String,
+    }],
     qrCodes:[
         {
            type:Schema.Types.ObjectId,
