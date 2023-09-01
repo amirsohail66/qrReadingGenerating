@@ -18,11 +18,14 @@ exports.getAllUser = async (req, res, next) => {
 };
 
 exports.signup = async (req, res) => {
-    const email = req.body.email;
+    const email = req.body.email.toLowerCase();
     const password = req.body.password;
     const role = req.body.role;
-
     try {
+        const find = await Admin.findOne({ email: email });
+        if (find && find.email === email) {
+            return res.status(401).json({ message: 'An Admin with this email is already registered.' });
+        }
         const hashedPw = await bcrypt.hash(password, 12);
         const admin = new Admin({
             email: email,
@@ -38,9 +41,8 @@ exports.signup = async (req, res) => {
 };
 
 exports.login = async (req, res, next) => {
-    const email = req.body.email;
+    const email = req.body.email.toLowerCase();
     const password = req.body.password;
-
     try {
         const admin = await Admin.findOne({ email: email });
         if (!admin) {
@@ -48,10 +50,8 @@ exports.login = async (req, res, next) => {
         }
         const isEqual = await bcrypt.compare(password, admin.password);
         if (!isEqual) {
-            e
             return res.status(401).json({ message: 'Wrong password!' });
         }
-
         const token = await generateToken(email);
         res.status(200).json({ message: 'Login successful!', userId: admin._id, token });
     } catch (err) {
@@ -61,20 +61,19 @@ exports.login = async (req, res, next) => {
 };
 
 exports.logout = async (req, res) => {
-    const token = await logoutToken();
+    const token = logoutToken();
     res.json({ message: "You have successfully logged out" });
 };
 
-exports.delete = async (req, res, next) => {
+exports.delete = async (req, res) => {
     const email = req.body.email;
-
     try {
         const user = await User.findOne({ email: email });
         if (!user) {
             return res.status(401).json({ message: 'A user with this email could not be found.' });
         }
         await user.deleteOne();
-        res.send("User deleted successfully")
+        res.json({message: "user delted successfully"})
     } catch (err) {
         console.log(err);
         res.status(500).json({ message: "An error occurred" });
@@ -83,20 +82,15 @@ exports.delete = async (req, res, next) => {
 
 exports.sendEmailToUser = async (req, res) => {
     const userEmail = req.body.email;
-
     try {
         const user = await User.findOne({ email: userEmail }).populate('qrCodes');
-
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-
         await sendEmail(userEmail, user.qrCodes);
-
         res.json({ message: 'Email sent successfully' });
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: 'An error occurred while sending the email' });
     }
 };
-

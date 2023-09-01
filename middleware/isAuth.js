@@ -6,17 +6,16 @@ exports.isAuth = async (req, res, next) => {
         return res.status(401).json({ error: 'Authentication required' });
     }
     
-    const token = req.headers.authorization.split(' ')[1]; 
+    const token = req.headers.authorization; 
 
     // Verify the token
     const decodedToken = verifyToken(token);    
 
     if (!decodedToken.email) {
-        return res.status(401).json({ error: 'Session Expired' });
+        return res.status(401).json({ error: 'Session Expired or you have been loged out' });
     }
     req.email = decodedToken.email; 
-    req.userId = decodedToken.userId; // Assuming your decoded token contains the userId
+    req.userId = decodedToken.userId;
    //console.log("fdsvfd",decodedToken)
-   
     next();
 };
