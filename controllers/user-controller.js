@@ -7,18 +7,13 @@ const QRCode = require('../model/QRCode');
 
 exports.deleteUserQRCode = async (req, res) => {
     try {
-      const qrcodeId = req.params.qrcodeId;
-  
+      const qrcodeId = req.params.qrcodeId;  
       // Get the user ID from the authenticated user's token
-      const userId = req.userId; 
-  
-      // Find and remove the QR code by its ID
+      const userId = req.userId;   
       const deletedQRCode = await QRCode.findByIdAndRemove(qrcodeId);
-
       if (!deletedQRCode) {
         return res.status(404).json(messageResponse.error(404, 'QR code not found'));
-      }
-  
+      }  
       if (deletedQRCode.userId.toString() !== userId.toString()) {
         return res.status(403).json(messageResponse.error(403, 'You do not have permission to delete this QR code'));
       }
@@ -27,24 +22,19 @@ exports.deleteUserQRCode = async (req, res) => {
       console.error(error);
       res.status(500).json(messageResponse.error(500, 'An error occurred'));
     }
-  };
-  
-
+  };  
   exports.getUserQRCodes = async (req, res) => {
     try {
         const userIdParam = req.params.userId; // Get the user ID from request parameters
         const token = req.headers.authorization;
         const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
         const userId = decodedToken.userId;
-
         // Check if the user ID from request parameters matches the authenticated user's ID
         if (userIdParam !== userId) {
             return res.status(403).json(messageResponse.error(403, 'Unauthorized access'));
         }
-
         // Find all QR codes associated with the user
         const qrCodes = await QRCode.find({ userId: userId });
-
         // Return the list of QR codes in the response
         res.status(200).json(messageResponse.success(200, 'User QR codes fetched successfully', qrCodes));
     } catch (error) {
@@ -52,8 +42,6 @@ exports.deleteUserQRCode = async (req, res) => {
         res.status(500).json(messageResponse.error(500, 'An error occurred'));
     }
 };
-
-
   exports.updateUser = async (req, res) => {
     try {
         const fieldsToUpdate = req.body;
@@ -61,12 +49,10 @@ exports.deleteUserQRCode = async (req, res) => {
         const token = req.headers.authorization;
         const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
         const userId = decodedToken.userId;
-
         // Check if the user ID from request parameters matches the authenticated user's ID
         if (userIdParam !== userId) {
             return res.status(403).json(messageResponse.error(403, 'Unauthorized access'));
         }
-
         // Check if a new password is provided in the request
         if (fieldsToUpdate.password) {
             // Hash the new password using bcrypt
@@ -74,12 +60,10 @@ exports.deleteUserQRCode = async (req, res) => {
             // Update the 'password' field in 'fieldsToUpdate' with the hashed password
             fieldsToUpdate.password = hashedPassword;
         }
-
         // Prevent email update and send a message
         if (fieldsToUpdate.email) {
             return res.status(400).json(messageResponse.error(400, 'You cannot update your email address.'));
         }
-
         const updatedUser = await User.findByIdAndUpdate(userId, { $set: fieldsToUpdate });
         if (!updatedUser) {
             return res.status(404).json(messageResponse.error(404, 'User not found'));

@@ -1,6 +1,6 @@
 const Admin = require('../model/Admin');
 const User = require('../model/User');
-const { generateToken, logoutToken } = require('../middleware/authToken');
+const { generateToken } = require('../middleware/authToken');
 const bcrypt = require('bcryptjs');
 const { sendEmail } = require('../services/emailServices');
 const messageRespons = require('../Responses/messageRespons');
@@ -22,7 +22,6 @@ async function createAdmin(email, password) {       // Can be used for creating 
         email,
         password: hashedPassword,
       });
-
       const savedAdmin = await newAdmin.save();
       console.log('Admin saved successfully:', savedAdmin);
     }
@@ -40,8 +39,6 @@ exports.adminGetAllUser = async (req, res, next) => {
   if (adminIdParam !== req.userId) {
     return res.status(403).json(messageRespons.error(403, 'Admin authorization required'));
   }
-
-  // Your existing code for fetching all users here
   try {
     const users = await User.find();
     if (!users || users.length === 0) {
@@ -80,7 +77,6 @@ exports.adminDeleteUser = async (req, res) => {
   if (adminIdParam !== req.userId) {
     return res.status(403).json(messageRespons.error(403, 'Admin authorization required'));
   }
-
   const email = req.body.email;
   try {
     const user = await User.findOne({ email: email });
@@ -97,25 +93,41 @@ exports.adminDeleteUser = async (req, res) => {
 
 exports.adminSendEmailToUser = async (req, res) => {
   const adminIdParam = req.params.adminId; // Get adminId from params
-  // Check if the authenticated user is an admin
   if (adminIdParam !== req.userId) {
     return res.status(403).json(messageRespons.error(403, 'Admin authorization required'));
   }
-
   const userEmail = req.body.email;
-  if (!userEmail) {
-    return res.status(400).json(messageRespons.error(400, 'Email is required'));
-  }
-
-  try {
-    const user = await User.findOne({ email: userEmail }).populate('qrCodes');
-    if (!user) {
-      return res.status(404).json(messageRespons.error(404, 'User not found'));
+  const sendToAll = req.body.sendToAll; // Boolean flag to determine if sending to all users
+  if (sendToAll) {
+    // Send email to all users with their QR codes
+    try {
+      const users = await User.find().populate('qrCodes');
+      if (!users || users.length === 0) {
+        return res.status(404).json(messageRespons.error(404, 'No users found'));
+      }
+      for (const user of users) {
+        await sendEmail(user.email, user.qrCodes);
+      }
+      return res.json(messageRespons.success(200, 'Emails sent to all users', { "Update": "Done to send to all the users" }));
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json(messageRespons.error(500, 'An error occurred while sending emails'));
     }
-    await sendEmail(userEmail, user.qrCodes);
-    res.json(messageRespons.success(200, 'Email sent successfully', { user }));
-  } catch (error) {
-    console.error(error);
-    res.status(500).json(messageRespons.error(500, 'An error occurred while sending the email'));
+  } else {
+    // Send email to a specific user with their QR code
+    if (!userEmail) {
+      return res.status(400).json(messageRespons.error(400, 'Email or sendToAll is required'));
+    }
+    try {
+      const user = await User.findOne({ email: userEmail }).populate('qrCodes');
+      if (!user) {
+        return res.status(404).json(messageRespons.error(404, 'User not found'));
+      }
+      await sendEmail(user.email, user.qrCodes);
+      return res.json(messageRespons.success(200, 'Email sent successfully', { user }));
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json(messageRespons.error(500, 'An error occurred while sending the email'));
+    }
   }
 };
