@@ -1,46 +1,27 @@
 const { body, validationResult } = require('express-validator');
 
-exports.validateAdminSignupInput = [
-    body('email')
-        .trim() 
-        .isEmail()
-        .withMessage('Invalid email format'),
-
-    body('password')
-        .trim()
-        .isLength({ min: 8 })
-        .withMessage('Password must be at least 8 characters long'),
-
-    body('role')
-        .trim()
-        .isIn(['admin', 'superadmin'])
-        .withMessage('Role should be either "admin" or "superadmin"')
-];
-
 exports.validateUserSignupInput = [
-    body('name')
+    body('name').notEmpty().withMessage('name is required')
         .trim()
         .isAlpha()
-        // .matches(/^[A-Za-z\s]+$/)
         .withMessage('Name can only contain alphabetic characters'),
 
-    body('email')
-        .trim() 
+    body('email').notEmpty().withMessage('email is required')
+        .trim()
         .isEmail()
         .withMessage('Invalid email format'),
 
-    body('password')
+    body('password').notEmpty().withMessage('password is required')
         .trim()
         .isLength({ min: 8 })
         .withMessage('Password must be at least 8 characters long'),
 
-    body('address')
+    body('address').notEmpty().withMessage('address is required')
         .trim()
-        .isLength({ min: 4, max: 255 })
-        .withMessage('Address is required and should be less than 255 characters')
+        .isLength({ min: 4, max: 255 }),
 ];
-//for reading qrText
-exports.validateInput = [
+
+exports.validateQrInput = [
     body('qrText')
         .trim()
         .isString()
@@ -49,15 +30,15 @@ exports.validateInput = [
 ];
 
 exports.validateLoginInput = [
-    body('email')
+    body('email').notEmpty.apply().withMessage('email is required')
         .trim()
         .isEmail()
         .withMessage('Invalid email format'),
 
-    body('password')
+    body('password').notEmpty().withMessage('password is required')
         .trim()
         .isLength({ min: 8 })
-        .withMessage('Password must be at least 8 characters long')
+        .withMessage('Password must be at least 8 characters long'),
 ];
 
 exports.handleValidationErrors = (req, res, next) => {

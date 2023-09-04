@@ -7,8 +7,9 @@ const userRoutes = express.Router();
 
 userRoutes.post("/signup",validateUserSignupInput, handleValidationErrors, getUser.signup);
 userRoutes.post("/login", validateLoginInput, handleValidationErrors, getUser.login);
-userRoutes.get("/myqrcodes", isAuth, qrController.getUserQRCodes);
-userRoutes.post("/logout", getUser.logout)
-userRoutes.put("/updateUser", isAuth,getUser.updateUser)
+userRoutes.get("/myqrcodes/:userId", isAuth, qrController.getUserQRCodes);
+userRoutes.put("/updateUser/:userId", isAuth,getUser.updateUser)
+userRoutes.delete('/deleteqrcode/:qrcodeId', isAuth, getUser.deleteUserQRCode); 
+userRoutes.get('/myqrcodes', isAuth, qrController.getUserQRCodes);
 
 module.exports = userRoutes;

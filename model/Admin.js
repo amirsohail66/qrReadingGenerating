@@ -11,11 +11,6 @@ const adminSchema = new Schema({
         required: true,
         minlength: 6
     },
-    role: {
-        type: String,
-        enum: ['superadmin', 'admin'],
-        required: true
-    }
 }, {
     timestamps: true
 });
