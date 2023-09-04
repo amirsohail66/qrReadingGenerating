@@ -16,6 +16,6 @@ exports.isAuth = async (req, res, next) => {
         return res.status(401).json(messageResponse.error(401, 'Invalid Token'));
     }
     req.email = decodedToken.email;
-    req.userId = decodedToken.userId;
+    req.userId = decodedToken.userId;   
     next();
 };
