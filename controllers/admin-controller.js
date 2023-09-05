@@ -50,7 +50,6 @@ exports.adminGetAllUser = async (req, res, next) => {
     res.status(500).json(messageRespons.error(500, 'An error occurred'));
   }
 };
-
 exports.adminLogin = async (req, res, next) => {
   const email = req.body.email.toLowerCase();
   const password = req.body.password;
@@ -77,6 +76,7 @@ exports.adminDeleteUser = async (req, res) => {
   if (adminIdParam !== req.userId) {
     return res.status(403).json(messageRespons.error(403, 'Admin authorization required'));
   }
+
   const email = req.body.email;
   try {
     const user = await User.findOne({ email: email });
@@ -93,41 +93,50 @@ exports.adminDeleteUser = async (req, res) => {
 
 exports.adminSendEmailToUser = async (req, res) => {
   const adminIdParam = req.params.adminId; // Get adminId from params
+  // Check if the authenticated user is an admin
   if (adminIdParam !== req.userId) {
     return res.status(403).json(messageRespons.error(403, 'Admin authorization required'));
   }
+
   const userEmail = req.body.email;
-  const sendToAll = req.body.sendToAll; // Boolean flag to determine if sending to all users
-  if (sendToAll) {
+  const sendToAll = parseInt(req.body.sendToAll, 10); // Parse the input as an integer
+
+  if (isNaN(sendToAll) || (sendToAll !== 0 && sendToAll !== 1)) {
+    return res.status(400).json(messageRespons.error(400, 'Invalid sendToAll value. Use 0 for single user or 1 for all users.'));
+  }
+
+  if (sendToAll === 1) {
     // Send email to all users with their QR codes
     try {
       const users = await User.find().populate('qrCodes');
       if (!users || users.length === 0) {
         return res.status(404).json(messageRespons.error(404, 'No users found'));
       }
+
       for (const user of users) {
         await sendEmail(user.email, user.qrCodes);
       }
+
       return res.json(messageRespons.success(200, 'Emails sent to all users', { "Update": "Done to send to all the users" }));
     } catch (error) {
       console.error(error);
       return res.status(500).json(messageRespons.error(500, 'An error occurred while sending emails'));
     }
-  } else {
+  } else if (sendToAll === 0 && userEmail) {
     // Send email to a specific user with their QR code
-    if (!userEmail) {
-      return res.status(400).json(messageRespons.error(400, 'Email or sendToAll is required'));
-    }
     try {
       const user = await User.findOne({ email: userEmail }).populate('qrCodes');
       if (!user) {
         return res.status(404).json(messageRespons.error(404, 'User not found'));
       }
+
       await sendEmail(user.email, user.qrCodes);
       return res.json(messageRespons.success(200, 'Email sent successfully', { user }));
     } catch (error) {
       console.error(error);
       return res.status(500).json(messageRespons.error(500, 'An error occurred while sending the email'));
     }
+  } else {
+    return res.status(400).json(messageRespons.error(400, 'Invalid input. Provide email when sending to a specific user.'));
   }
 };
