@@ -20,6 +20,15 @@ const userSchema = new Schema({
         required: true,
         minlength: 5
     },
+    token: {
+        type: String,
+        default: null
+    },
+    isLoggedIn: {
+        type: Number,
+        enum: [0 , 1],
+        default: 0
+    },
     qrCodes:[
         {
            type:Schema.Types.ObjectId,

@@ -14,6 +14,7 @@
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
+    "connect-flash": "^0.1.1",
     "dotenv": "^16.3.1",
     "ejs": "^3.1.9",
     "express": "^4.18.2",
@@ -25,6 +26,7 @@
     "nodemailer": "^6.9.4",
     "nodemon": "^3.0.1",
     "qrcode": "^1.5.3",
-    "qrcode-reader": "^1.0.4"
+    "qrcode-reader": "^1.0.4",
+    "uuid": "^9.0.1"
   }
 }
