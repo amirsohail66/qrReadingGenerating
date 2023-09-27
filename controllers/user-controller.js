@@ -7,21 +7,33 @@ const QRCode = require('../model/QRCode');
 const fs = require('fs').promises;
 const qrcode = require('qrcode');
 const path = require('path');
-const { v4: uuidv4 } = require('uuid');
 const Upload = require('../model/Upload')
 const { sendEmailURL } = require('../services/emailServices');
 
-const qr = require('qrcode');
-const emailService = require('../services/emailServices');
+exports.getAllImages = async (req, res) => {
+    try {
+        const images = await Upload.find()
+        if(images.length == 0){
+        return res.status(404).json(messageResponse.error(404, 'No Images found'));
+        }
+        res.status(200).json(messageResponse.success(200, 'Images fetched successfully',images));
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json(messageResponse.error(500, 'An Error occured while Fetching Images'));
+    }
+}
 
 exports.shareImage = async (req, res) => {
     const imageId = req.query.imageId;
     const authenticatedUserId = req.query.id;
     const userId = req.userId;
     const userEmail = req.body.email;
+    console.log(authenticatedUserId);
+    console.log("userId",userId);
 
     if (authenticatedUserId !== userId) {
-        return res.status(403).json(messageResponse.error(403, 'Unauthorized'));
+        return res.status(403).json(messageResponse.error(403, 'You can only share that image which you have uploaded'));
     }
 
     try {
@@ -31,7 +43,7 @@ exports.shareImage = async (req, res) => {
         if (!image) {
             return res.status(404).json(messageResponse.error(404, 'Image not found'));
         }
-        const loginPageUrl = 'localhost:3000/user/image'; // Replace with the actual login page URL
+        const loginPageUrl = 'localhost:3001/image';
         const additionalData = {
             imageId: imageId,
         };
@@ -56,7 +68,7 @@ exports.shareImage = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).json(messageResponse.error(500, 'Error generating QR code'));
+        res.status(500).json(messageResponse.error(500, 'An error occured while sharing image'));
     }
 };
 exports.sharedImage = async (req, res) => {
@@ -65,13 +77,13 @@ exports.sharedImage = async (req, res) => {
     try {
         const image = await Upload.findById(imageId);
         if (!image) {
-            return res.status(404).json(messageResponse.error(404, 'Image not found'));
+            return res.status(404).json(messageResponse.error(404, 'Image does not exist'));
         }
-        const filePath = path.join(__dirname, '..', image.imagePath); // Adjust the path based on your Upload model structure
-        res.sendFile(filePath);
+
+        res.status(200).json(messageResponse.success(200, 'Images fetched successfully',image));
     } catch (error) {
         console.error(error);
-        res.status(500).json(messageResponse.error(500, 'Error retrieving image'));
+        res.status(500).json(messageResponse.error(500, 'Error while fetching image'));
     }
 };
 
@@ -150,13 +162,12 @@ exports.uploadImage = async (req, res) => {
         const userId = req.params.id;
         const { name, description, caption } = req.body;
         if (!req.file) {
-            return res.status(400).json(messageResponse.error(400, 'No file was uploaded.'));
+            return res.status(400).json(messageResponse.error(400, 'Please select an image.'));
         }
 
         const upload = new Upload({
             name,
             description,
-            caption,
             imagePath: req.file ? req.file.path : null,
             user: userId,
         });
@@ -166,7 +177,7 @@ exports.uploadImage = async (req, res) => {
         res.status(200).json(messageResponse.success(200, 'Image uploaded successfully', saveUpload));
     } catch (error) {
         console.error(error);
-        res.status(500).json(messageResponse.error(500, 'An error occurred'));
+        res.status(500).json(messageResponse.error(500, 'An error occurred while uploading image'));
     }
 };
 
@@ -231,6 +242,6 @@ exports.logout = async (req, res) => {
         res.status(200).json(messageResponse.success(200, 'User logged out successfully'));
     } catch (err) {
         console.error(err);
-        res.status(500).json(messageResponse.error(500, 'An error occurred'));
+        res.status(500).json(messageResponse.error(500, 'An error occurred while loging out'));
     }
 };

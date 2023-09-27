@@ -1,9 +1,9 @@
 module.exports = {
-  success: (status, message, data = null) => {
-      return { success: true, status, message, data };
+  success: (status, msg, data = null) => {
+      return { success: true, status, msg, data };
   },
-  error: (status, message, errors = null) => {
-      const response = { success: false, status, message };
+  error: (status, msg, errors = null) => {
+      const response = { success: false, status, msg };
       if (errors !== null) {
           response.errors = errors;
       }

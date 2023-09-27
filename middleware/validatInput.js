@@ -1,5 +1,21 @@
 const { body, validationResult } = require('express-validator');
 
+exports.validateUploadImageFields = [
+  body('name')
+    .notEmpty().withMessage('Name is required')
+    .isString().withMessage('Name must be a string'),
+
+  body('description')
+    .notEmpty().withMessage('Description is required')
+    .isString().withMessage('Description must be a string'),
+];
+
+exports.validateShareImageEmail = [
+    body('email')
+      .notEmpty().withMessage('Email is required')
+      .isEmail().withMessage('Invalid email address'),
+  ];
+
 exports.validateUserSignupInput = [
     body('name').notEmpty().withMessage('name is required')
         .trim()
@@ -37,8 +53,6 @@ exports.validateLoginInput = [
 
     body('password').notEmpty().withMessage('password is required')
         .trim()
-        .isLength({ min: 8 })
-        .withMessage('Password must be at least 8 characters long'),
 ];
 
 exports.handleValidationErrors = (req, res, next) => {
