@@ -22,5 +22,6 @@ userRoutes.post('/logout', isAuth,getUser.logout)
 userRoutes.post('/shareImage',validateShareImageEmail,handleValidationErrors, isAuth,getUser.shareImage);
 userRoutes.get('/image', getUser.sharedImage)
 userRoutes.get('/getAllImages',isAuth, getUser.getAllImages)
+userRoutes.get('/myImages', isAuth, getUser.getUserUploadedImages)
 
 module.exports = userRoutes;

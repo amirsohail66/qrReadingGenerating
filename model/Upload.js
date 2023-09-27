@@ -10,13 +10,17 @@ const uploadSchema = new Schema({
         type: String,
         required: true
     },
-    // caption: String,
     imagePath: String, // New field to store the image path
     user: {
         type: Schema.Types.ObjectId,
         ref: 'User', // Reference to the User model
         required: true
-    }
+    },
+    image_type: {
+        type: Number,
+        enum: [0 , 1],
+        default: 0
+    },
 }, {
     timestamps: true
 });

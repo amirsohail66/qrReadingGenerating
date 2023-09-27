@@ -1,6 +1,6 @@
 const User = require('../model/User');
 const bcrypt = require('bcryptjs');
-const { generateToken, logoutToken } = require('../middleware/authToken')
+const { generateToken } = require('../middleware/authToken')
 const jwt = require('jsonwebtoken');
 const messageResponse = require('../Responses/messageRespons');
 const QRCode = require('../model/QRCode');
@@ -10,9 +10,27 @@ const path = require('path');
 const Upload = require('../model/Upload')
 const { sendEmailURL } = require('../services/emailServices');
 
+exports.getUserUploadedImages = async (req, res) => {
+    console.log('object');
+    try {
+        const userId = req.userId; 
+
+        const userImages = await Upload.find({ user: userId });
+
+        if (userImages.length === 0) {
+            return res.status(404).json(messageResponse.error(404, 'No images uploaded by you.'));
+        }
+
+        res.status(200).json(messageResponse.success(200, 'Imaged fteched successfully', userImages));
+    } catch (error) {
+        console.error(error);
+        res.status(500).json(messageResponse.error(500, 'An error occurred while fetching your uploaded images.'));
+    }
+};
+
 exports.getAllImages = async (req, res) => {
     try {
-        const images = await Upload.find()
+        const images = await Upload.find({image_type:0})
         if(images.length == 0){
         return res.status(404).json(messageResponse.error(404, 'No Images found'));
         }
@@ -160,7 +178,7 @@ exports.updateUser = async (req, res) => {
 exports.uploadImage = async (req, res) => {
     try {
         const userId = req.params.id;
-        const { name, description, caption } = req.body;
+        const { name, description, image_type } = req.body;
         if (!req.file) {
             return res.status(400).json(messageResponse.error(400, 'Please select an image.'));
         }
@@ -170,6 +188,7 @@ exports.uploadImage = async (req, res) => {
             description,
             imagePath: req.file ? req.file.path : null,
             user: userId,
+            image_type
         });
 
         const saveUpload = await upload.save();
