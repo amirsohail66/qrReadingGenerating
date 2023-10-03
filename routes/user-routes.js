@@ -23,5 +23,7 @@ userRoutes.post('/shareImage',validateShareImageEmail,handleValidationErrors, is
 userRoutes.get('/image', getUser.sharedImage)
 userRoutes.get('/getAllImages',isAuth, getUser.getAllImages)
 userRoutes.get('/myImages', isAuth, getUser.getUserUploadedImages)
+userRoutes.post('/imageLikes', isAuth, getUser.likeImage)
+userRoutes.post('/imageComments', isAuth, getUser.commentImage)
 
 module.exports = userRoutes;

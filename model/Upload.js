@@ -18,9 +18,33 @@ const uploadSchema = new Schema({
     },
     image_type: {
         type: Number,
-        enum: [0 , 1],
+        enum: [0, 1],
         default: 0
     },
+    likes: [{
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: 'User' // Reference to the User model for the user who made the comment
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+    }],
+    comments: [{
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: 'User' // Reference to the User model for the user who made the comment
+        },
+        text: {
+            type: String,
+            required: true
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+    }]
 }, {
     timestamps: true
 });

@@ -10,6 +10,63 @@ const path = require('path');
 const Upload = require('../model/Upload')
 const { sendEmailURL } = require('../services/emailServices');
 
+exports.commentImage = async (req, res) => {
+    try {
+        const imageId = req.query.imageId;
+        const userId = req.userId;
+        const commentText = req.body.commentText;
+
+        // Check if the image exists
+        const image = await Upload.findById(imageId);
+        if (!image) {
+            return res.status(404).json(messageResponse.error(404, 'Image not found'));
+        }
+
+        // Add the user's comment to the image
+        const newComment = {
+            user: userId,
+            text: commentText
+        };
+        image.comments.push(newComment);
+        await image.save();
+
+        res.status(200).json(messageResponse.success(200, 'Comment added successfully', newComment));
+    } catch (error) {
+        console.error(error);
+        res.status(500).json(messageResponse.error(500, 'An error occurred while adding the comment'));
+    }
+};
+
+
+exports.likeImage = async (req, res) => {
+    try {
+        const imageId = req.query.imageId;
+        const userId = req.userId;
+
+        // Check if the image exists
+        const image = await Upload.findById(imageId);
+        if (!image) {
+            return res.status(404).json(messageResponse.error(404, 'Image not found'));
+        }
+
+        // Check if the user has already liked the image
+        if (image.likes.some(like => like.user.toString() === userId)) {
+            return res.status(400).json(messageResponse.error(400, 'You have already liked this image.'));
+        }
+
+        // Add the user's like to the image
+        image.likes.push({ user: userId });
+        await image.save();
+
+        res.status(200).json(messageResponse.success(200, 'Image liked successfully', image));
+    } catch (error) {
+        console.error(error);
+        res.status(500).json(messageResponse.error(500, 'An error occurred while liking the image'));
+    }
+};
+
+
+
 exports.getUserUploadedImages = async (req, res) => {
     console.log('object');
     try {
